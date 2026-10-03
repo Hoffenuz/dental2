@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, AlertCircle, XCircle, CheckCircle, Clock4, RefreshCw } from 'lucide-react';
 import { hapticImpact, hapticNotification } from '../telegram';
-import { updateLocalBookingStatus } from '../supabase';
+import { cancelAppointment, updateLocalBookingStatus } from '../supabase';
 
 export default function MyBookingsView({ bookings, onRefresh, onGoToBooking }) {
   const [filter, setFilter] = useState('all');
@@ -43,9 +43,9 @@ export default function MyBookingsView({ bookings, onRefresh, onGoToBooking }) {
     }
   };
 
-  const handleCancelBooking = (id) => {
+  const handleCancelBooking = async (id) => {
     hapticImpact('heavy');
-    updateLocalBookingStatus(id, 'bekor_qilindi');
+    await cancelAppointment(id);
     hapticNotification('success');
     setCancelingId(null);
     onRefresh();

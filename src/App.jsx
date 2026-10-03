@@ -19,6 +19,7 @@ import {
   fetchDoctors, 
   fetchServices, 
   createAppointment,
+  fetchUserAppointments,
   getLocalBookings 
 } from './supabase';
 import { MOCK_CATEGORIES } from './data/mockData';
@@ -59,20 +60,28 @@ export default function App() {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [clinicData, doctorsData, servicesData] = await Promise.all([
+      const tgUser = getTelegramUser();
+      const [clinicData, doctorsData, servicesData, userBookings] = await Promise.all([
         fetchClinicData(),
         fetchDoctors(),
-        fetchServices()
+        fetchServices(),
+        fetchUserAppointments(tgUser?.id, patientPhone)
       ]);
       setClinic(clinicData);
       setDoctors(doctorsData);
       setServices(servicesData);
-      setMyBookings(getLocalBookings());
+      setMyBookings(userBookings);
     } catch (e) {
       console.error("Ma'lumotlarni yuklashda xatolik:", e);
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshMyBookings = async () => {
+    const tgUser = getTelegramUser();
+    const bookings = await fetchUserAppointments(tgUser?.id, patientPhone);
+    setMyBookings(bookings);
   };
 
   useEffect(() => {
@@ -137,16 +146,24 @@ export default function App() {
       hapticNotification('success');
       setConfirmedBooking(result.data);
       setBookingStep(5);
-      setMyBookings(getLocalBookings());
+      await refreshMyBookings();
 
-      // Bot backend xabarnomasi (agar mavjud bo'lsa)
+      // Bot Edge Function orqali Telegram xabarnomasi yuborish
       try {
-        const botApiUrl = import.meta.env.VITE_BOT_API_URL || 'http://localhost:4000';
-        fetch(`${botApiUrl}/api/notify-booking`, {
+        const botApiUrl = import.meta.env.VITE_BOT_API_URL || 'https://jvzghreavlzjpxhnasxd.supabase.co/functions/v1/telegram-bot';
+        fetch(botApiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(result.data)
-        }).catch(() => {});
+          body: JSON.stringify({
+            action: 'notify-booking',
+            booking: {
+              ...result.data,
+              patient_telegram_id: tgUser?.id || result.data.patient_telegram_id,
+              doctor_name: selectedDoctor.full_name,
+              service_name: selectedService.name
+            }
+          })
+        }).catch((err) => console.warn('Bot bildirishnoma xatosi:', err));
       } catch (e) {}
     } else {
       hapticNotification('error');
@@ -283,7 +300,7 @@ export default function App() {
             {activeTab === 'my-bookings' && (
               <MyBookingsView
                 bookings={myBookings}
-                onRefresh={() => setMyBookings(getLocalBookings())}
+                onRefresh={refreshMyBookings}
                 onGoToBooking={() => {
                   handleResetBooking();
                   setActiveTab('booking');
