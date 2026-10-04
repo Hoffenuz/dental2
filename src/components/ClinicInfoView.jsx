@@ -117,6 +117,10 @@ export default function ClinicInfoView({ clinic, doctors }) {
               <img
                 src={d.photo_url}
                 alt={d.full_name}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
+                }}
                 className="w-10 h-10 rounded-xl object-cover"
               />
               <div className="flex-1 min-w-0">

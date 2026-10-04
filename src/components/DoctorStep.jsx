@@ -40,6 +40,10 @@ export default function DoctorStep({ doctors, selectedDoctor, onSelectDoctor, on
                   <img
                     src={doctor.photo_url || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80'}
                     alt={doctor.full_name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
+                    }}
                     className="w-14 h-14 rounded-2xl object-cover border border-slate-100 shadow-xs"
                   />
                   <div className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-1 rounded-md flex items-center gap-0.5 shadow-xs">

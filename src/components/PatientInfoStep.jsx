@@ -136,7 +136,14 @@ export default function PatientInfoStep({
               type="tel"
               required
               value={patientPhone}
-              onChange={(e) => setPatientPhone(e.target.value)}
+              onFocus={() => {
+                if (!patientPhone) setPatientPhone('+998 ');
+              }}
+              onChange={(e) => {
+                let v = e.target.value;
+                if (!v.startsWith('+998') && v.startsWith('998')) v = '+' + v;
+                setPatientPhone(v);
+              }}
               placeholder="+998 90 123 45 67"
               className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
