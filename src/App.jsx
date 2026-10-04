@@ -22,18 +22,18 @@ import {
   fetchUserAppointments,
   getLocalBookings 
 } from './supabase';
-import { MOCK_CATEGORIES } from './data/mockData';
+import { MOCK_CLINIC, MOCK_DOCTORS, MOCK_SERVICES, MOCK_CATEGORIES } from './data/mockData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('booking'); // 'booking' | 'my-bookings' | 'clinic'
   const [bookingStep, setBookingStep] = useState(1); // 1: Service, 2: Doctor, 3: DateTime, 4: PatientInfo, 5: Success
 
-  // Data states
-  const [clinic, setClinic] = useState({});
-  const [doctors, setDoctors] = useState([]);
-  const [services, setServices] = useState([]);
-  const [myBookings, setMyBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Data states - darhol render bo'lishi va oq ekran bo'lmasligi uchun mock ma'lumotlar bilan initsializatsiya qilinadi
+  const [clinic, setClinic] = useState(MOCK_CLINIC);
+  const [doctors, setDoctors] = useState(MOCK_DOCTORS);
+  const [services, setServices] = useState(MOCK_SERVICES);
+  const [myBookings, setMyBookings] = useState(getLocalBookings());
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Booking form states
   const [selectedService, setSelectedService] = useState(null);
@@ -56,25 +56,35 @@ export default function App() {
     }
   }, []);
 
-  // Boshlang'ich ma'lumotlarni yuklash
+  // Boshlang'ich ma'lumotlarni fonda yuklash (hech qachon oq ekranda qotib qolmaydi)
   const loadInitialData = async () => {
-    setLoading(true);
+    setIsSyncing(true);
     try {
       const tgUser = getTelegramUser();
-      const [clinicData, doctorsData, servicesData, userBookings] = await Promise.all([
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 4000)
+      );
+
+      const fetchPromise = Promise.all([
         fetchClinicData(),
         fetchDoctors(),
         fetchServices(),
         fetchUserAppointments(tgUser?.id, patientPhone)
       ]);
-      setClinic(clinicData);
-      setDoctors(doctorsData);
-      setServices(servicesData);
-      setMyBookings(userBookings);
+
+      const [clinicData, doctorsData, servicesData, userBookings] = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]);
+
+      if (clinicData) setClinic(clinicData);
+      if (Array.isArray(doctorsData) && doctorsData.length > 0) setDoctors(doctorsData);
+      if (Array.isArray(servicesData) && servicesData.length > 0) setServices(servicesData);
+      if (Array.isArray(userBookings)) setMyBookings(userBookings);
     } catch (e) {
-      console.error("Ma'lumotlarni yuklashda xatolik:", e);
+      console.warn("Baza ma'lumotlarini yangilashda ogohlantirish (avtonom rejimda ishlamoqda):", e.message);
     } finally {
-      setLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -189,39 +199,32 @@ export default function App() {
       />
 
       <main className="max-w-md mx-auto w-full px-4 pt-3 flex-1">
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs text-slate-500 font-medium">Klinika ma'lumotlari yuklanmoqda...</p>
-          </div>
-        ) : (
-          <>
-            {/* 1. NAVBAT OLISH TABI */}
-            {activeTab === 'booking' && (
-              <div className="space-y-4">
-                {/* Qadamlar progress bari */}
-                {bookingStep < 5 && (
-                  <div className="flex items-center justify-between px-2 pt-1">
-                    {[1, 2, 3, 4].map((s) => (
-                      <div key={s} className="flex items-center">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                          bookingStep === s
-                            ? 'bg-cyan-600 text-white shadow-xs'
-                            : bookingStep > s
-                            ? 'bg-teal-500 text-white'
-                            : 'bg-slate-200 text-slate-500'
-                        }`}>
-                          {s}
-                        </div>
-                        {s < 4 && (
-                          <div className={`w-12 h-1 mx-1 rounded-full ${
-                            bookingStep > s ? 'bg-teal-500' : 'bg-slate-200'
-                          }`}></div>
-                        )}
-                      </div>
-                    ))}
+        {/* 1. NAVBAT OLISH TABI */}
+        {activeTab === 'booking' && (
+          <div className="space-y-4">
+            {/* Qadamlar progress bari */}
+            {bookingStep < 5 && (
+              <div className="flex items-center justify-between px-2 pt-1">
+                {[1, 2, 3, 4].map((s) => (
+                  <div key={s} className="flex items-center">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      bookingStep === s
+                        ? 'bg-cyan-600 text-white shadow-xs'
+                        : bookingStep > s
+                        ? 'bg-teal-500 text-white'
+                        : 'bg-slate-200 text-slate-500'
+                    }`}>
+                      {s}
+                    </div>
+                    {s < 4 && (
+                      <div className={`w-12 h-1 mx-1 rounded-full ${
+                        bookingStep > s ? 'bg-teal-500' : 'bg-slate-200'
+                      }`}></div>
+                    )}
                   </div>
-                )}
+                ))}
+              </div>
+            )}
 
                 {bookingStep === 1 && (
                   <ServiceStep
@@ -315,8 +318,6 @@ export default function App() {
                 doctors={doctors}
               />
             )}
-          </>
-        )}
       </main>
     </div>
   );
