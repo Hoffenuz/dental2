@@ -33,7 +33,7 @@ export default function SuccessStep({ booking, onReset, onViewMyBookings }) {
         {/* Yuqori qism */}
         <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4">
           <div className="flex items-center justify-between text-xs opacity-90">
-            <span>ORTHODONT-M Qabul Chiptasi</span>
+            <span>Ismailov Dental Clinic Qabul Chiptasi</span>
             <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-[10px]">
               ID: #{booking.id.slice(-6).toUpperCase()}
             </span>
@@ -91,7 +91,7 @@ export default function SuccessStep({ booking, onReset, onViewMyBookings }) {
             </div>
             <div className="flex justify-between py-1">
               <span className="text-slate-400">Manzil:</span>
-              <span className="font-medium text-slate-800 text-right">Minor metro, Amir Temur 45</span>
+              <span className="font-medium text-slate-800 text-right">Qo'shko'pir tumani, Al-Beruniy ko'chasi (Park oldida)</span>
             </div>
           </div>
         </div>

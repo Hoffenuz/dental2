@@ -1,14 +1,15 @@
-// ORTHODONT-M — Bemorlar uchun sodda va tushunarli ma'lumotlar
+// Ismailov Dental Clinic — Bemorlar uchun sodda va tushunarli ma'lumotlar
 
 export const MOCK_CLINIC = {
   id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
-  name: 'ORTHODONT-M',
+  name: 'Ismailov Dental Clinic',
   tagline: "Zamonaviy stomatologiya va ortodontiya markazi",
   phone: '+998 97 422 99 92',
   secondary_phone: '+998 33 121 21 31',
   emergency_phone: '+998 97 422 99 92',
-  address: "Toshkent sh., Yunusobod tumani (Mo'ljal: Minor metro)",
-  landmark: "Minor metro bekati yaqinida",
+  address: "Qo'shko'pir tumani, Al-Beruniy ko'chasi (Mo'ljal: Park oldida)",
+  landmark: "Qo'shko'pir tumani, Al-Beruniy ko'chasi, park oldida",
+  map_url: "https://maps.app.goo.gl/sbZqccuTv1p9bKdK6",
   working_hours: '09:00 - 19:00 (Dushanba - Shanba)',
   rating: 5.0,
   reviews_count: 520
@@ -22,7 +23,7 @@ export const MOCK_DOCTORS = [
     experience_years: 12,
     room_number: '1-xona',
     phone: '+998 97 422 99 92',
-    photo_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80',
+    photo_url: null,
     bio: "Bosh shifokor, malakali ortodont. Barcha turdagi metall, keramik breketlar va zamonaviy tish qatorini to'g'rilash bo'yicha mutaxassis.",
     rating: 5.0,
     badge: 'Bosh shifokor / Ortodont'
@@ -34,7 +35,7 @@ export const MOCK_DOCTORS = [
     experience_years: 8,
     room_number: '2-xona',
     phone: '+998 33 121 21 31',
-    photo_url: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&auto=format&fit=crop&q=80',
+    photo_url: '/dr-muhammad.png',
     bio: "Estetik tish davolash, nurlanuvchi svetovoy plomba, og'riqsiz tish sug'urish va tish toshlarini tozalash bo'yicha mutaxassis.",
     rating: 4.9,
     badge: 'Terapevt-Stomatolog'

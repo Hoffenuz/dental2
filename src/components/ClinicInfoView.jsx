@@ -7,11 +7,15 @@ import {
   Sparkles, 
   Navigation, 
   Award,
-  Users
+  Users,
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { hapticImpact } from '../telegram';
 
 export default function ClinicInfoView({ clinic, doctors }) {
+  const mapUrl = clinic.map_url || "https://maps.app.goo.gl/sbZqccuTv1p9bKdK6";
+
   return (
     <div className="space-y-4">
       {/* Banner */}
@@ -21,7 +25,7 @@ export default function ClinicInfoView({ clinic, doctors }) {
             Zamonaviy Stomatologiya
           </span>
           <h2 className="text-xl font-black leading-tight">
-            {clinic.name || 'DentaCare Markazi'}
+            {clinic.name || 'Ismailov Dental Clinic'}
           </h2>
           <p className="text-xs text-cyan-100/90 leading-relaxed">
             {clinic.tagline || "Sog'lom tabassum va og'riqsiz davolash standartlari"}
@@ -42,12 +46,20 @@ export default function ClinicInfoView({ clinic, doctors }) {
             </div>
             <div className="flex-1">
               <span className="font-bold text-slate-800 block">Manzil:</span>
-              <p className="text-slate-600 mt-0.5">{clinic.address}</p>
-              {clinic.landmark && (
-                <span className="text-[11px] text-cyan-600 font-medium block mt-0.5">
-                  Mo'ljal: {clinic.landmark}
-                </span>
-              )}
+              <p className="text-slate-700 mt-0.5 font-medium">
+                Qo'shko'pir tumani, Al-Beruniy ko'chasi (Park oldida)
+              </p>
+              <a
+                href={mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => hapticImpact('light')}
+                className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-xs transition shadow-xs"
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                Google Xaritada ochish
+                <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
+              </a>
             </div>
           </div>
 
@@ -57,7 +69,7 @@ export default function ClinicInfoView({ clinic, doctors }) {
             </div>
             <div className="flex-1">
               <span className="font-bold text-slate-800 block">Qabul soatlari:</span>
-              <p className="text-slate-600 mt-0.5">{clinic.working_hours}</p>
+              <p className="text-slate-600 mt-0.5">{clinic.working_hours || '09:00 - 19:00 (Dushanba - Shanba)'}</p>
             </div>
           </div>
 
@@ -72,14 +84,14 @@ export default function ClinicInfoView({ clinic, doctors }) {
                 onClick={() => hapticImpact('light')}
                 className="text-cyan-700 font-bold mt-0.5 block hover:underline"
               >
-                +998 97 422 99 92 (Dr. Ismailov Mansurbek)
+                📞 +998 97 422 99 92 (Dr. Ismailov Mansurbek)
               </a>
               <a 
                 href="tel:+998331212131"
                 onClick={() => hapticImpact('light')}
                 className="text-cyan-700 font-bold mt-1 block hover:underline"
               >
-                +998 33 121 21 31 (Dr. Ismailov Muhammad)
+                📞 +998 33 121 21 31 (Dr. Ismailov Muhammad)
               </a>
             </div>
           </div>
@@ -119,26 +131,39 @@ export default function ClinicInfoView({ clinic, doctors }) {
         </div>
 
         <div className="space-y-2">
-          {doctors.map(d => (
-            <div key={d.id} className="flex items-center gap-3 py-1.5 border-b border-slate-100 last:border-0">
-              <img
-                src={d.photo_url}
-                alt={d.full_name}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
-                }}
-                className="w-10 h-10 rounded-xl object-cover"
-              />
-              <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-xs text-slate-800 truncate">{d.full_name}</h4>
-                <p className="text-[11px] text-slate-500 truncate">{d.specialty}</p>
+          {doctors.map(d => {
+            const hasPhoto = Boolean(d.photo_url);
+
+            return (
+              <div key={d.id} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
+                {hasPhoto ? (
+                  <img
+                    src={d.photo_url}
+                    alt={d.full_name}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      if (e.target.nextElementSibling) {
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }
+                    }}
+                    className="w-11 h-11 rounded-xl object-cover border border-slate-100 shadow-xs shrink-0"
+                  />
+                ) : null}
+
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-600 to-teal-700 text-white flex items-center justify-center shrink-0 border border-cyan-500/20 shadow-xs ${hasPhoto ? 'hidden' : 'flex'}`}>
+                  <User className="w-5 h-5 text-white" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-xs text-slate-800 truncate">{d.full_name}</h4>
+                  <p className="text-[11px] text-slate-500 truncate">{d.specialty}</p>
+                </div>
+                <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-md">
+                  ★ {d.rating || 5.0}
+                </span>
               </div>
-              <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-md">
-                ★ {d.rating}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

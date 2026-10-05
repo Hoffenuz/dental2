@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Award, MapPin, ChevronRight, Check } from 'lucide-react';
+import { Star, Award, MapPin, ChevronRight, Check, User } from 'lucide-react';
 import { hapticImpact } from '../telegram';
 
 export default function DoctorStep({ doctors, selectedDoctor, onSelectDoctor, onBack }) {
@@ -21,6 +21,7 @@ export default function DoctorStep({ doctors, selectedDoctor, onSelectDoctor, on
       <div className="space-y-3">
         {doctors.map((doctor) => {
           const isSelected = selectedDoctor?.id === doctor.id;
+          const hasPhoto = Boolean(doctor.photo_url);
 
           return (
             <div
@@ -36,19 +37,32 @@ export default function DoctorStep({ doctors, selectedDoctor, onSelectDoctor, on
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className="relative">
-                  <img
-                    src={doctor.photo_url || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80'}
-                    alt={doctor.full_name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
-                    }}
-                    className="w-14 h-14 rounded-2xl object-cover border border-slate-100 shadow-xs"
-                  />
+                <div className="relative shrink-0">
+                  {hasPhoto ? (
+                    <img
+                      src={doctor.photo_url}
+                      alt={doctor.full_name}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                      className="w-14 h-14 rounded-2xl object-cover border border-slate-100 shadow-xs"
+                    />
+                  ) : null}
+
+                  <div
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-700 text-white flex flex-col items-center justify-center border border-cyan-500/30 shadow-xs ${
+                      hasPhoto ? 'hidden' : 'flex'
+                    }`}
+                  >
+                    <User className="w-7 h-7 text-white" />
+                  </div>
+
                   <div className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-1 rounded-md flex items-center gap-0.5 shadow-xs">
                     <Star className="w-2.5 h-2.5 fill-current" />
-                    {doctor.rating}
+                    {doctor.rating || 5.0}
                   </div>
                 </div>
 
