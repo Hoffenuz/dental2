@@ -33,7 +33,7 @@ export default function SuccessStep({ booking, onReset, onViewMyBookings }) {
         {/* Yuqori qism */}
         <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4">
           <div className="flex items-center justify-between text-xs opacity-90">
-            <span>DentaCare Klinika Chiptasi</span>
+            <span>ORTHODONT-M Qabul Chiptasi</span>
             <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-[10px]">
               ID: #{booking.id.slice(-6).toUpperCase()}
             </span>

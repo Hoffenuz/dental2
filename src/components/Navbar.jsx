@@ -17,16 +17,16 @@ export default function Navbar({ activeTab, setActiveTab, clinicPhone }) {
             🦷
           </div>
           <div>
-            <h1 className="font-bold text-sm leading-tight text-slate-800">DentaCare</h1>
+            <h1 className="font-extrabold text-sm leading-tight text-slate-800 tracking-tight">ORTHODONT<span className="text-cyan-600">-M</span></h1>
             <p className="text-[10px] text-teal-600 font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
-              09:00 - 20:00 Ochiq
+              09:00 - 19:00 Ochiq
             </p>
           </div>
         </div>
 
         <a
-          href={`tel:${clinicPhone || '+998712004422'}`}
+          href={`tel:${clinicPhone || '+998974229992'}`}
           onClick={() => hapticImpact('light')}
           className="flex items-center gap-1.5 text-xs font-semibold text-cyan-700 bg-cyan-50 px-2.5 py-1.5 rounded-full border border-cyan-200/60 hover:bg-cyan-100 transition-colors"
         >

@@ -84,7 +84,7 @@ export const fetchClinicData = async () => {
 export const fetchDoctors = async () => {
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('doctors').select('*').eq('is_active', true);
+      const { data, error } = await supabase.from('doctors').select('*').eq('is_active', true).order('created_at', { ascending: true });
       if (!error && data && data.length > 0) return data;
     } catch (e) {
       console.warn('Supabase doctors yuklashda xatolik, mock data ishlatilmoqda', e);
@@ -96,7 +96,7 @@ export const fetchDoctors = async () => {
 export const fetchServices = async () => {
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('services').select('*').eq('is_active', true);
+      const { data, error } = await supabase.from('services').select('*').eq('is_active', true).order('price_uzs', { ascending: false });
       if (!error && data && data.length > 0) return data;
     } catch (e) {
       console.warn('Supabase services yuklashda xatolik, mock data ishlatilmoqda', e);

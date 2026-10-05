@@ -66,13 +66,20 @@ export default function ClinicInfoView({ clinic, doctors }) {
               <Phone className="w-4 h-4" />
             </div>
             <div className="flex-1">
-              <span className="font-bold text-slate-800 block">Qabulxona (Reception):</span>
+              <span className="font-bold text-slate-800 block">Bog'lanish uchun telefonlar:</span>
               <a 
-                href={`tel:${clinic.phone}`}
+                href="tel:+998974229992"
                 onClick={() => hapticImpact('light')}
                 className="text-cyan-700 font-bold mt-0.5 block hover:underline"
               >
-                {clinic.phone}
+                +998 97 422 99 92 (Dr. Ismailov Mansurbek)
+              </a>
+              <a 
+                href="tel:+998331212131"
+                onClick={() => hapticImpact('light')}
+                className="text-cyan-700 font-bold mt-1 block hover:underline"
+              >
+                +998 33 121 21 31 (Dr. Ismailov Muhammad)
               </a>
             </div>
           </div>

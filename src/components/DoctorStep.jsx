@@ -68,13 +68,12 @@ export default function DoctorStep({ doctors, selectedDoctor, onSelectDoctor, on
                   </p>
 
                   <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500 font-medium">
+                    <span className="flex items-center gap-1 font-bold text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded">
+                      📞 {doctor.phone}
+                    </span>
                     <span className="flex items-center gap-1">
                       <Award className="w-3 h-3 text-cyan-600" />
                       {doctor.experience_years} yillik tajriba
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400" />
-                      {doctor.room_number || 'Xona 1'}
                     </span>
                   </div>
                 </div>
