@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { MOCK_CLINIC, MOCK_DOCTORS, MOCK_SERVICES, INITIAL_BOOKINGS } from './data/mockData';
-
-const defaultUrl = 'https://jvzghreavlzjpxhnasxd.supabase.co';
-const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2emdocmVhdmx6anB4aG5hc3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMDI2OTcsImV4cCI6MjEwMDg3ODY5N30.bRCRxNOR32VEcI8Pd-0OpSvtfESC1UyTpeJ1TItA0Y4';
+import { getTelegramInitData } from './telegram';
 
 const cleanString = (val, fallback = '') => {
   if (!val) return fallback;
@@ -13,12 +11,12 @@ const cleanString = (val, fallback = '') => {
   return str;
 };
 
-const rawUrl = import.meta.env.VITE_SUPABASE_URL || defaultUrl;
-const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || defaultKey;
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Har qanday qo'shimcha qo'shtirnoq, probel yoki xato formatlarni tozalash
-const cleanUrl = cleanString(rawUrl, defaultUrl).replace(/\/+$/, '');
-const cleanKey = cleanString(rawKey, defaultKey);
+const cleanUrl = cleanString(rawUrl).replace(/\/+$/, '');
+const cleanKey = cleanString(rawKey);
 
 let client = null;
 if (cleanUrl && cleanKey && cleanUrl.startsWith('http')) {
@@ -37,6 +35,22 @@ if (cleanUrl && cleanKey && cleanUrl.startsWith('http')) {
 
 export const isSupabaseConfigured = Boolean(client);
 export const supabase = client;
+export const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+const BOT_API_URL = cleanString(import.meta.env.VITE_BOT_API_URL);
+
+const callBookingApi = async (action, payload = {}) => {
+  if (!BOT_API_URL) throw new Error('VITE_BOT_API_URL sozlanmagan');
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Navbat olish uchun ilovani Telegram ichidan oching');
+  const response = await fetch(BOT_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, initData, ...payload })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Server so\'rovi bajarilmadi');
+  return result;
+};
 
 // Local storage orqali offline / demo navbatlarni saqlash
 const STORAGE_KEY = 'dentacare_user_bookings';
@@ -78,7 +92,7 @@ export const fetchClinicData = async () => {
       console.warn('Supabase clinics yuklashda xatolik, mock data ishlatilmoqda', e);
     }
   }
-  return MOCK_CLINIC;
+  return isDemoMode ? MOCK_CLINIC : null;
 };
 
 export const fetchDoctors = async () => {
@@ -90,7 +104,7 @@ export const fetchDoctors = async () => {
       console.warn('Supabase doctors yuklashda xatolik, mock data ishlatilmoqda', e);
     }
   }
-  return MOCK_DOCTORS;
+  return isDemoMode ? MOCK_DOCTORS : [];
 };
 
 export const fetchServices = async () => {
@@ -102,10 +116,19 @@ export const fetchServices = async () => {
       console.warn('Supabase services yuklashda xatolik, mock data ishlatilmoqda', e);
     }
   }
-  return MOCK_SERVICES;
+  return isDemoMode ? MOCK_SERVICES : [];
 };
 
 export const fetchBookedSlots = async (doctorId, date) => {
+  if (supabase) {
+    try {
+      const result = await callBookingApi('webapp-booked-slots', { doctorId, date });
+      return Array.isArray(result.slots) ? result.slots : [];
+    } catch (error) {
+      console.warn('Band soatlarni olishda xatolik', error);
+      return [];
+    }
+  }
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -122,6 +145,7 @@ export const fetchBookedSlots = async (doctorId, date) => {
     }
   }
 
+  if (!isDemoMode) return [];
   // Local / mock band soatlar
   const local = getLocalBookings();
   return local
@@ -130,6 +154,16 @@ export const fetchBookedSlots = async (doctorId, date) => {
 };
 
 export const createAppointment = async (bookingData) => {
+  if (supabase) {
+    try {
+      const result = await callBookingApi('webapp-create-booking', { booking: bookingData });
+      if (result.data) saveLocalBooking(result.data);
+      return { success: true, data: result.data };
+    } catch (error) {
+      console.error('Navbat yaratish xatosi:', error);
+      return { success: false, error };
+    }
+  }
   if (supabase) {
     try {
       const clinicId = bookingData.clinic_id || 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
@@ -219,13 +253,19 @@ export const createAppointment = async (bookingData) => {
 
       if (error) {
         console.error('Supabase appointments insert error:', error);
+        return { success: false, error };
       }
     } catch (e) {
       console.error('Supabase navbat yaratish xatosi:', e);
+      return { success: false, error: e };
     }
   }
 
-  // Fallback / Mock yaratish (offline bo'lsa)
+  if (!isDemoMode) {
+    return { success: false, error: new Error('Supabase ulanmagan') };
+  }
+
+  // Faqat aniq yoqilgan demo rejimi uchun mahalliy yozuv.
   const dummyId = 'b-' + Math.random().toString(36).substring(2, 9);
   const created = {
     id: dummyId,
@@ -239,6 +279,17 @@ export const createAppointment = async (bookingData) => {
 
 // Foydalanuvchining navbatlarini olish (Supabase yoki Local)
 export const fetchUserAppointments = async (telegramId, phone) => {
+  if (supabase) {
+    try {
+      const result = await callBookingApi('webapp-my-bookings');
+      const bookings = Array.isArray(result.data) ? result.data : [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+      return bookings;
+    } catch (error) {
+      console.warn('Foydalanuvchi navbatlarini yuklashda xatolik:', error);
+      return [];
+    }
+  }
   if (supabase && (telegramId || phone)) {
     try {
       let query = supabase
@@ -258,7 +309,7 @@ export const fetchUserAppointments = async (telegramId, phone) => {
       }
 
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const formatted = data.map(item => ({
           ...item,
           doctor_name: item.doctor?.full_name || item.doctor_name || 'Shifokor',
@@ -275,20 +326,39 @@ export const fetchUserAppointments = async (telegramId, phone) => {
     }
   }
 
-  return getLocalBookings();
+  return isDemoMode ? getLocalBookings() : [];
 };
 
 // Navbatni bekor qilish
 export const cancelAppointment = async (id) => {
-  updateLocalBookingStatus(id, 'bekor_qilindi');
+  if (!id) return { success: false };
+  if (supabase && !id.startsWith('b-')) {
+    try {
+      await callBookingApi('webapp-cancel-booking', { appointmentId: id });
+      updateLocalBookingStatus(id, 'bekor_qilindi');
+      return { success: true };
+    } catch (error) {
+      console.warn('Navbatni bekor qilishda xato:', error);
+      return { success: false, error };
+    }
+  }
   if (supabase && id && !id.startsWith('b-')) {
     try {
-      await supabase
+      const { error } = await supabase
         .from('appointments')
         .update({ status: 'bekor_qilindi', updated_at: new Date().toISOString() })
         .eq('id', id);
+      if (error) return { success: false, error };
+      updateLocalBookingStatus(id, 'bekor_qilindi');
+      return { success: true };
     } catch (e) {
       console.warn('Navbatni bekor qilishda Supabase xatosi:', e);
+      return { success: false, error: e };
     }
   }
+  if (isDemoMode) {
+    updateLocalBookingStatus(id, 'bekor_qilindi');
+    return { success: true };
+  }
+  return { success: false };
 };

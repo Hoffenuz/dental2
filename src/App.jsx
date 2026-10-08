@@ -19,20 +19,20 @@ import {
   fetchDoctors, 
   fetchServices, 
   createAppointment,
-  fetchUserAppointments,
-  getLocalBookings 
+  fetchUserAppointments
 } from './supabase';
-import { MOCK_CLINIC, MOCK_DOCTORS, MOCK_SERVICES, MOCK_CATEGORIES } from './data/mockData';
+import { MOCK_CATEGORIES } from './data/mockData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('booking'); // 'booking' | 'my-bookings' | 'clinic'
   const [bookingStep, setBookingStep] = useState(1); // 1: Service, 2: Doctor, 3: DateTime, 4: PatientInfo, 5: Success
 
-  // Data states - darhol render bo'lishi va oq ekran bo'lmasligi uchun mock ma'lumotlar bilan initsializatsiya qilinadi
-  const [clinic, setClinic] = useState(MOCK_CLINIC);
-  const [doctors, setDoctors] = useState(MOCK_DOCTORS);
-  const [services, setServices] = useState(MOCK_SERVICES);
-  const [myBookings, setMyBookings] = useState(getLocalBookings());
+  // Real ma'lumotlar yuklanmaguncha bo'sh holat ko'rsatiladi. Production'da
+  // soxta bemor va navbatlarni ko'rsatish yoki saqlash mumkin emas.
+  const [clinic, setClinic] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+  const [services, setServices] = useState([]);
+  const [myBookings, setMyBookings] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Booking form states
@@ -158,23 +158,8 @@ export default function App() {
       setBookingStep(5);
       await refreshMyBookings();
 
-      // Bot Edge Function orqali Telegram xabarnomasi yuborish
-      try {
-        const botApiUrl = import.meta.env.VITE_BOT_API_URL || 'https://jvzghreavlzjpxhnasxd.supabase.co/functions/v1/telegram-bot';
-        fetch(botApiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'notify-booking',
-            booking: {
-              ...result.data,
-              patient_telegram_id: tgUser?.id || result.data.patient_telegram_id,
-              doctor_name: selectedDoctor.full_name,
-              service_name: selectedService.name
-            }
-          })
-        }).catch((err) => console.warn('Bot bildirishnoma xatosi:', err));
-      } catch (e) {}
+      // Bemor xabari server tomonda, tekshirilgan Telegram ma'lumoti bilan
+      // yuboriladi. Brauzerdan ochiq notification endpointiga so'rov yo'q.
     } else {
       hapticNotification('error');
       alert("Navbatni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
@@ -195,7 +180,7 @@ export default function App() {
       <Navbar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
-        clinicPhone={clinic.phone} 
+        clinicPhone={clinic?.phone || ''}
       />
 
       <main className="max-w-md mx-auto w-full px-4 pt-3 flex-1">

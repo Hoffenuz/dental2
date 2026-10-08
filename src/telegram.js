@@ -29,14 +29,13 @@ export const getTelegramUser = () => {
   if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     return tg.initDataUnsafe.user;
   }
-  // Brauzer orqali test qilinganda demo foydalanuvchi
-  return {
-    id: 99887766,
-    first_name: 'Foydalanuvchi',
-    last_name: '',
-    username: 'foydalanuvchi_demo'
-  };
+  // Oddiy brauzer Telegram foydalanuvchisi emas. Soxta ID berish boshqa
+  // foydalanuvchining navbatlari ko'rinishi yoki noto'g'ri yozuvlar
+  // yaratilishiga olib kelardi.
+  return null;
 };
+
+export const getTelegramInitData = () => getTelegram()?.initData || '';
 
 export const hapticImpact = (style = 'medium') => {
   const tg = getTelegram();

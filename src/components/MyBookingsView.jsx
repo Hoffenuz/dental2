@@ -21,7 +21,7 @@ export default function MyBookingsView({ bookings, onRefresh, onGoToBooking }) {
           bg: 'bg-sky-50 text-sky-700 border-sky-200 animate-pulse',
           icon: Clock4
         };
-      case 'yakunlandi':
+      case 'bajarildi':
         return {
           label: 'Yakunlangan',
           bg: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -53,7 +53,7 @@ export default function MyBookingsView({ bookings, onRefresh, onGoToBooking }) {
 
   const filteredBookings = bookings.filter(b => {
     if (filter === 'active') return b.status === 'kutilmoqda' || b.status === 'tasdiqlandi' || b.status === 'qabulda';
-    if (filter === 'completed') return b.status === 'yakunlandi';
+    if (filter === 'completed') return b.status === 'bajarildi';
     if (filter === 'cancelled') return b.status === 'bekor_qilindi';
     return true;
   });
